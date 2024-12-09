@@ -38,9 +38,7 @@ func (s *Server) initRoutes() http.Handler {
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
-	s.router.Get("/livez", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("ok"))
-	})
+	s.router.Get("/livez", s.health)
 
 	return r
 }
