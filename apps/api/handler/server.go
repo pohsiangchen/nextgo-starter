@@ -3,25 +3,27 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+
+	"apps/api/config"
 )
 
 type Server struct {
+	cfg    *config.Config
 	router *chi.Mux
 }
 
 func NewServer() *Server {
 	srv := &Server{
+		cfg:    config.New(),
 		router: chi.NewRouter(),
 	}
 
@@ -45,15 +47,17 @@ func (s *Server) initRoutes() http.Handler {
 
 func (s *Server) Start() {
 	server := http.Server{
-		Addr:         fmt.Sprintf(":%d", 8080),
-		Handler:      s.router,
-		IdleTimeout:  time.Second * 30, // s.cfg.IdleTimeout,
-		ReadTimeout:  time.Second * 10, // s.cfg.ReadTimeout,
-		WriteTimeout: time.Minute,      // s.cfg.WriteTimeout,
+		Addr:        s.cfg.API.Host + ":" + s.cfg.API.Port,
+		Handler:     s.router,
+		IdleTimeout: s.cfg.IdleTimeout,
+		// to avoid clients hold up a connection by being slow to write or read
+		// see https://blog.cloudflare.com/the-complete-guide-to-golang-net-http-timeouts/
+		ReadTimeout:  s.cfg.ReadTimeout,
+		WriteTimeout: s.cfg.WriteTimeout,
 	}
 
 	go func() {
-		log.Println("Server has started")
+		log.Printf("Server has started - http://%v\n", server.Addr)
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("HTTP server error: %v", err)
 		}
@@ -67,7 +71,7 @@ func (s *Server) Start() {
 	<-sigChan
 
 	// set a buffer time for active connections to be processed instead of terminates all of them immediatelly
-	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), s.cfg.API.GracefulTimeout)
 	defer shutdownRelease()
 
 	// when `Shutdown()` is called, `ListenAndServe()` immediately return `ErrServerClosed`.
