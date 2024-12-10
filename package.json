@@ -2,7 +2,11 @@
   "name": "@nextgo-starter/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "api:docker:up": "./apps/api/scripts/docker-compose-up.sh",
+    "api:docker:down": "./apps/api/scripts/docker-compose-down.sh",
+    "api:docker:restart": "npm run api:docker:down && npm run api:docker:up"
+  },
   "private": true,
   "dependencies": {
     "next": "14.2.16",

@@ -12,12 +12,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 
 	"apps/api/config"
+	"libs/db"
 )
 
 type Server struct {
-	cfg    *config.Config
+	cfg  *config.Config
+	sqlx *sqlx.DB
+
 	router *chi.Mux
 }
 
@@ -27,9 +32,23 @@ func NewServer() *Server {
 		router: chi.NewRouter(),
 	}
 
+	// initialization
 	srv.initRoutes()
+	srv.newDatabase()
 
 	return srv
+}
+
+func (s *Server) newDatabase() {
+	if s.cfg.Database.Driver == "" {
+		log.Fatal("please fill in database credentials in .env file or set in environment variable")
+	}
+
+	dsn := db.DataSourceName(int(s.cfg.Database.Port), s.cfg.Database.Host, s.cfg.Database.User, s.cfg.Database.Password, s.cfg.Database.Name, s.cfg.Database.SslMode)
+	s.sqlx = db.NewSqlx(s.cfg.Database.Driver, dsn)
+	s.sqlx.SetMaxOpenConns(s.cfg.Database.MaxConnectionPool)
+	s.sqlx.SetMaxIdleConns(s.cfg.Database.MaxIdleConnections)
+	s.sqlx.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
 }
 
 func (s *Server) initRoutes() http.Handler {
@@ -77,7 +96,13 @@ func (s *Server) Start() {
 	// when `Shutdown()` is called, `ListenAndServe()` immediately return `ErrServerClosed`.
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		log.Fatalf("HTTP shutdown error: %v", err)
+		// force the server to close if the graceful shutdown is unable to complete within the specified timeout
+		server.Close()
 	}
+	s.closeResources()
 	log.Println("Graceful shutdown complete.")
+}
 
+func (s *Server) closeResources() {
+	_ = s.sqlx.Close()
 }
