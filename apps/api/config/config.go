@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	API
+	Database
 }
 
 func New() *Config {
@@ -16,6 +17,7 @@ func New() *Config {
 	}
 
 	return &Config{
-		API: NewAPI(),
+		API:      NewAPI(),
+		Database: NewDatabase(),
 	}
 }
