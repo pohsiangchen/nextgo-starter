@@ -31,6 +31,27 @@ To see all available targets to run for a project, run:
 npx nx show project web
 ```
 
+## Run `api` application
+
+Checks `apps/api/project.json` for the tasks can be performed, use:
+
+```sh
+# Run application 
+npx nx run api:serve
+
+# Run application's unit tests
+npx nx run api:test
+
+# Generate database migration up and down files with filename 'test'
+npx nx run api:create-migration "--args=filename=test"
+
+# Perform database migration
+npx nx run api:migrate-up
+
+# Reverse database migration
+npx nx run api:migrate-down
+```
+
 These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
 
 [More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
