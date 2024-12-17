@@ -25,6 +25,27 @@
     },
     "tidy": {
       "executor": "@nx-go/nx-go:tidy"
+    },
+    "create-migration": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "commands": ["make create_migration"]
+      }
+    },
+    "migrate-up": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "commands": ["make migrate_up"]
+      }
+    },
+    "migrate-down": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "commands": ["make migrate_down"]
+      }
     }
   }
 }
