@@ -11,6 +11,13 @@
         "main": "{projectRoot}/main.go"
       }
     },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "commands": ["air"]
+      }
+    },
     "serve": {
       "executor": "@nx-go/nx-go:serve",
       "options": {

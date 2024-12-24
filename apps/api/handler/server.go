@@ -51,17 +51,15 @@ func (s *Server) newDatabase() {
 	s.sqlx.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
 }
 
-func (s *Server) initRoutes() http.Handler {
-	r := chi.NewRouter()
-
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
+func (s *Server) initRoutes() {
+	s.router.Use(middleware.RequestID)
+	s.router.Use(middleware.RealIP)
+	s.router.Use(middleware.Logger)
+	s.router.Use(middleware.Recoverer)
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
 	s.router.Get("/livez", s.health)
-
-	return r
 }
 
 func (s *Server) Start() {

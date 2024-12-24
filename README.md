@@ -31,34 +31,17 @@ To see all available targets to run for a project, run:
 npx nx show project web
 ```
 
-## Run `api` application
-
-All tasks are defined in `apps/api/project.json`, use:
-
-```sh
-# Run application 
-npx nx run api:serve
-
-# Run application's unit tests
-npx nx run api:test
-```
-
-Install [golang-migrate](https://github.com/golang-migrate/migrate/blob/v4.18.1/cmd/migrate/README.md) before running database schema migration. Use:
-
-```sh
-# Generate database migration up and down files with filename 'test'
-npx nx run api:create-migration "--args=filename=test"
-
-# Perform database migration
-npx nx run api:migrate-up
-
-# Reverse database migration
-npx nx run api:migrate-down
-```
-
 These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
 
 [More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+
+## Applications' Description
+
+| Name      | Path             | Description                                                                                                                                      |
+| --------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `api`     | `./apps/api`     | A REST API template in Golang. See details and available commands in [README](https://github.com/pohsiangchen/nextgo-starter/tree/main/apps/api) |
+| `web`     | `./apps/web`     | A web application using Next.js                                                                                                                  |
+| `web-e2e` | `./apps/web-e2e` | An end-to-end testing for `web` application using [Playwright](https://playwright.dev/).                                                         |
 
 ## Add new projects
 
