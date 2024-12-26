@@ -10,12 +10,13 @@ import (
 	"syscall"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 
 	"apps/api/config"
+	"apps/api/middleware"
 	"libs/db"
 )
 
@@ -28,7 +29,7 @@ type Server struct {
 
 func NewServer() *Server {
 	srv := &Server{
-		cfg:    config.New(),
+		cfg:    config.Get(),
 		router: chi.NewRouter(),
 	}
 
@@ -52,10 +53,10 @@ func (s *Server) newDatabase() {
 }
 
 func (s *Server) initRoutes() {
-	s.router.Use(middleware.RequestID)
-	s.router.Use(middleware.RealIP)
+	s.router.Use(chiMiddleware.RealIP)
 	s.router.Use(middleware.Logger)
-	s.router.Use(middleware.Recoverer)
+	s.router.Use(middleware.RequestID("req_id", "X-Request-Id"))
+	s.router.Use(middleware.Recovery)
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 

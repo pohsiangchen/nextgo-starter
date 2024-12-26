@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"sync"
 
 	"github.com/joho/godotenv"
 )
@@ -11,13 +12,20 @@ type Config struct {
 	Database
 }
 
-func New() *Config {
-	if err := godotenv.Load(); err != nil {
-		log.Println(err)
-	}
+var once sync.Once
+var cfg *Config
 
-	return &Config{
-		API:      NewAPI(),
-		Database: NewDatabase(),
-	}
+func Get() *Config {
+	once.Do(func() {
+		if err := godotenv.Load(); err != nil {
+			log.Println(err)
+		}
+
+		cfg = &Config{
+			API:      NewAPI(),
+			Database: NewDatabase(),
+		}
+	})
+
+	return cfg
 }
