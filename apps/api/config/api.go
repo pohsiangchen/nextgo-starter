@@ -14,6 +14,8 @@ type API struct {
 	ReadTimeout     time.Duration `split_words:"true" default:"5s"`
 	WriteTimeout    time.Duration `split_words:"true" default:"10s"`
 	GracefulTimeout time.Duration `split_words:"true" default:"10s"`
+	AppEnv          string        `split_words:"true" default:"development"`
+	LogLevel        int           `split_words:"true" default:"1"`
 }
 
 func NewAPI() API {
