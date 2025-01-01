@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"strings"
 
+	"golang.org/x/crypto/bcrypt"
+
 	"apps/api/database"
 	"apps/api/database/sqlc"
 )
@@ -29,9 +31,14 @@ func NewUserServiceImpl(store *sqlcstore.Queries) (service UserService) {
 }
 
 func (us UserServiceImpl) Create(ctx context.Context, user *CreateUserRequest) (sqlcstore.User, error) {
+	hash, err := HashPassword(user.Password)
+	if err != nil {
+		return sqlcstore.User{}, err
+	}
+
 	createdUser, err := us.store.CreateUser(
 		ctx,
-		sqlcstore.CreateUserParams{Email: user.Email, Username: user.Username, Password: []byte(user.Password)},
+		sqlcstore.CreateUserParams{Email: user.Email, Username: user.Username, Password: hash},
 	)
 	if err != nil && strings.Contains(err.Error(), `duplicate key value violates unique constraint "users_email_key"`) {
 		return createdUser, database.ErrDuplicateEmail
@@ -51,10 +58,20 @@ func (us UserServiceImpl) Update(ctx context.Context, user *UpdateUserRequest) (
 	return updatedUser, err
 }
 
+// TDOD: update user password
 func (us UserServiceImpl) UpdatePassword(ctx context.Context, user *UpdateUserPasswordRequest) (sqlcstore.User, error) {
+	if foundUser, err := us.FindById(ctx, user.ID); err != nil {
+		return foundUser, err
+	}
+
+	hash, err := HashPassword(user.Password)
+	if err != nil {
+		return sqlcstore.User{}, err
+	}
+
 	return us.store.UpdateUserPassword(
 		ctx,
-		sqlcstore.UpdateUserPasswordParams{ID: user.ID, Password: []byte(user.Password)},
+		sqlcstore.UpdateUserPasswordParams{ID: user.ID, Password: hash},
 	)
 }
 
@@ -76,4 +93,14 @@ func (us UserServiceImpl) FindById(ctx context.Context, userID int64) (sqlcstore
 func (us UserServiceImpl) FindAll(ctx context.Context) ([]sqlcstore.User, error) {
 	users, err := us.store.ListUsers(ctx)
 	return users, err
+}
+
+// Hash password
+func HashPassword(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+}
+
+// Compares a bcrypt hashed password with the given password
+func ComparePassword(hashedPassword []byte, password string) error {
+	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
 }
