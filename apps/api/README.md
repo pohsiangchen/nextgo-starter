@@ -19,7 +19,7 @@ Go to the root of the `nextgo-starter` and use the following commands in termina
 | `npx nx run api:lint`                                    | Formats and lints application using the `go fmt`                                        |
 | `npx nx run api:build`                                   | Builds application                                                                      |
 | `npx nx run api:tidy`                                    | Runs go mod tidy to ensures that the go.mod file matches the source code in a Go module |
-| `npx nx run api:create-migration "--args=filename=test"` | Generates a database migration `up` and `down` files with filename 'test'               |
+| `npx nx run api:migrate-create "--args=filename=test"` | Generates a database migration `up` and `down` files with filename 'test'               |
 | `npx nx run api:migrate-up`                              | Runs database migration                                                                 |
 | `npx nx run api:migrate-down`                            | Reverses database migration                                                             |
 

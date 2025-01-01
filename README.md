@@ -49,16 +49,28 @@ While you could add new projects to your workspace manually, you might want to l
 
 Use the plugin's generator to create new projects.
 
-To generate a new application, use:
+To generate a new Next.js application, use:
 
 ```sh
 npx nx g @nx/next:app demo
 ```
 
-To generate a new library, use:
+To generate a new React library, use:
 
 ```sh
 npx nx g @nx/react:lib mylib
+```
+
+To generate a new [Golang application](https://github.com/nx-go/nx-go/blob/main/docs/generators/application.md), use:
+
+```sh
+nx g @nx-go/nx-go:application <YOUR_APPLICATION_NAME> --directory apps/<YOUR_APPLICATION_NAME>
+```
+
+To generate a new [Golang library](https://github.com/nx-go/nx-go/blob/main/docs/generators/library.md), use:
+
+```sh
+nx g @nx-go/nx-go:library <YOUR_LIBRARY_NAME> --directory libs/<YOUR_LIBRARY_NAME>
 ```
 
 You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.

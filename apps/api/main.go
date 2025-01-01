@@ -1,10 +1,10 @@
 package main
 
 import (
-	"apps/api/handler"
+	"apps/api/server"
 )
 
 func main() {
-	server := handler.NewServer()
+	server := server.NewServer()
 	server.Start()
 }

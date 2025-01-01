@@ -1,0 +1,53 @@
+# version: "2"
+# cloud:
+#     organization: ""
+#     project: ""
+#     hostname: ""
+# servers: []
+# sql: []
+# overrides:
+#     go: null
+# plugins: []
+# rules: []
+# options: {}
+
+# version: '2'
+# sql:
+#   - engine: postgresql
+#     queries: 'query.sql'
+#     schema: 'schema.sql'
+#     gen:
+#       go:
+#         package: 'db'
+#         out: 'tutorial'
+#         sql_package: 'pgx/v5'
+# rules:
+#   - name: postgresql-query-too-costly
+#     message: 'Too costly'
+#     rule: 'postgresql.explain.plan.total_cost > 300.0'
+#   - name: mysql-query-too-costly
+#     message: 'Too costly'
+#     rule: 'has(mysql.explain.query_block.cost_info) && double(mysql.explain.query_block.cost_info.query_cost) > 2.0'
+
+version: '2'
+sql:
+  - name: nextgo_db
+    schema: database/migrations
+    queries: database/queries
+    engine: 'postgresql'
+    database:
+      uri: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}
+    analyzer:
+      database: false
+    rules:
+      - sqlc/db-prepare
+      - postgresql-query-too-costly
+    gen:
+      go:
+        package: sqlcstore
+        sql_package: database/sql
+        out: database/sqlc
+rules:
+  - name: postgresql-query-too-costly
+    message: 'Too costly'
+    rule: 'postgresql.explain.plan.total_cost > 300.0'
