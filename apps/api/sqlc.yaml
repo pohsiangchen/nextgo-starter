@@ -1,0 +1,22 @@
+version: '2'
+sql:
+  - name: nextgo_db
+    schema: database/migrations
+    queries: database/queries
+    engine: 'postgresql'
+    database:
+      uri: postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSL_MODE}
+    analyzer:
+      database: false
+    rules:
+      - sqlc/db-prepare
+      - postgresql-query-too-costly
+    gen:
+      go:
+        package: sqlcstore
+        sql_package: database/sql
+        out: database/sqlc
+rules:
+  - name: postgresql-query-too-costly
+    message: 'Too costly'
+    rule: 'postgresql.explain.plan.total_cost > 300.0'

@@ -1,34 +1,23 @@
 # NextgoStarter
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
-
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Finish your CI setup
-
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/L5cNH56STP)
-
+A fullstack starter using Golang and Next.js with [Nx](https://nx.dev) integrated Monorepo
 
 ## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx dev web
-```
-
-To create a production bundle:
-
-```sh
-npx nx build web
-```
 
 To see all available targets to run for a project, run:
 
 ```sh
+# shows available tasks for `api`
+npx nx show project api
+
+# shows available tasks for `web`
 npx nx show project web
+```
+
+To visually explore what was created for workspace, run:
+
+```sh
+npx nx graph
 ```
 
 These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
@@ -37,11 +26,11 @@ These targets are either [inferred automatically](https://nx.dev/concepts/inferr
 
 ## Applications' Description
 
-| Name      | Path             | Description                                                                                                                                      |
-| --------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `api`     | `./apps/api`     | A REST API template in Golang. See details and available commands in [README](https://github.com/pohsiangchen/nextgo-starter/tree/main/apps/api) |
-| `web`     | `./apps/web`     | A web application using Next.js                                                                                                                  |
-| `web-e2e` | `./apps/web-e2e` | An end-to-end testing for `web` application using [Playwright](https://playwright.dev/).                                                         |
+| Name      | Path             | Description                                                                                                                                       |
+| --------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`     | `./apps/api`     | A REST API template in Golang. See details and available targets in [README](https://github.com/pohsiangchen/nextgo-starter/tree/main/apps/api)   |
+| `web`     | `./apps/web`     | A web application using Next.js. See details and available targets in [README](https://github.com/pohsiangchen/nextgo-starter/tree/main/apps/web) |
+| `web-e2e` | `./apps/web-e2e` | An end-to-end testing for `web` application using [Playwright](https://playwright.dev/).                                                          |
 
 ## Add new projects
 
@@ -49,16 +38,28 @@ While you could add new projects to your workspace manually, you might want to l
 
 Use the plugin's generator to create new projects.
 
-To generate a new application, use:
+To generate a new Next.js application, use:
 
 ```sh
 npx nx g @nx/next:app demo
 ```
 
-To generate a new library, use:
+To generate a new React library, use:
 
 ```sh
 npx nx g @nx/react:lib mylib
+```
+
+To generate a new [Golang application](https://github.com/nx-go/nx-go/blob/main/docs/generators/application.md), use:
+
+```sh
+nx g @nx-go/nx-go:application <YOUR_APPLICATION_NAME> --directory apps/<YOUR_APPLICATION_NAME>
+```
+
+To generate a new [Golang library](https://github.com/nx-go/nx-go/blob/main/docs/generators/library.md), use:
+
+```sh
+nx g @nx-go/nx-go:library <YOUR_LIBRARY_NAME> --directory libs/<YOUR_LIBRARY_NAME>
 ```
 
 You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
@@ -75,6 +76,8 @@ Nx Console is an editor extension that enriches your developer experience. It le
 [Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
 
 ## Useful links
+
+[Learn more about Nx workspace setup and its capabilities](https://nx.dev/nx-api/next?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects).
 
 Learn more:
 

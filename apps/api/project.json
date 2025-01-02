@@ -15,7 +15,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/api",
-        "commands": ["air"]
+        "command": "air"
       }
     },
     "serve": {
@@ -33,25 +33,46 @@
     "tidy": {
       "executor": "@nx-go/nx-go:tidy"
     },
-    "create-migration": {
+    "migrate-create": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/api",
-        "commands": ["make create_migration"]
+        "command": "make create_migration"
       }
     },
     "migrate-up": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/api",
-        "commands": ["make migrate_up"]
+        "command": "make migrate_up"
       }
     },
     "migrate-down": {
       "executor": "nx:run-commands",
       "options": {
         "cwd": "apps/api",
-        "commands": ["make migrate_down"]
+        "command": "make migrate_down"
+      }
+    },
+    "migrate-force": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "command": "make migrate_force"
+      }
+    },
+    "sqlc-vet": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "command": "(export $(grep '^DB_' .env | xargs) && sqlc vet)"
+      }
+    },
+    "sqlc-generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/api",
+        "command": "sqlc generate"
       }
     }
   }

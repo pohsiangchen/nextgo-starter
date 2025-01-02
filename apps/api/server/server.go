@@ -1,7 +1,8 @@
-package handler
+package server
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"net/http"
@@ -12,17 +13,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-	"github.com/jmoiron/sqlx"
+	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 
 	"apps/api/config"
+	"apps/api/database"
+	sqlcStore "apps/api/database/sqlc"
+	"apps/api/domain/health"
+	"apps/api/domain/user"
 	"apps/api/middleware"
-	"libs/db"
 )
 
 type Server struct {
-	cfg  *config.Config
-	sqlx *sqlx.DB
+	cfg       *config.Config
+	db        *sql.DB
+	store     *sqlcStore.Queries
+	validator *validator.Validate
 
 	router *chi.Mux
 }
@@ -34,8 +40,9 @@ func NewServer() *Server {
 	}
 
 	// initialization
-	srv.initRoutes()
 	srv.newDatabase()
+	srv.newValidator()
+	srv.initRoutes()
 
 	return srv
 }
@@ -45,11 +52,17 @@ func (s *Server) newDatabase() {
 		log.Fatal("please fill in database credentials in .env file or set in environment variable")
 	}
 
-	dsn := db.DataSourceName(int(s.cfg.Database.Port), s.cfg.Database.Host, s.cfg.Database.User, s.cfg.Database.Password, s.cfg.Database.Name, s.cfg.Database.SslMode)
-	s.sqlx = db.NewSqlx(s.cfg.Database.Driver, dsn)
-	s.sqlx.SetMaxOpenConns(s.cfg.Database.MaxConnectionPool)
-	s.sqlx.SetMaxIdleConns(s.cfg.Database.MaxIdleConnections)
-	s.sqlx.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
+	dsn := database.DataSourceName(int(s.cfg.Database.Port), s.cfg.Database.Host, s.cfg.Database.User, s.cfg.Database.Password, s.cfg.Database.Name, s.cfg.Database.SslMode)
+	s.db = database.NewDB(s.cfg.Database.Driver, dsn)
+	s.db.SetMaxOpenConns(s.cfg.Database.MaxConnectionPool)
+	s.db.SetMaxIdleConns(s.cfg.Database.MaxIdleConnections)
+	s.db.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
+
+	s.store = sqlcStore.New(s.db)
+}
+
+func (s *Server) newValidator() {
+	s.validator = validator.New(validator.WithRequiredStructEnabled())
 }
 
 func (s *Server) initRoutes() {
@@ -60,7 +73,21 @@ func (s *Server) initRoutes() {
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
-	s.router.Get("/livez", s.health)
+	s.router.Get("/livez", health.Get)
+
+	// initialize user routes
+	s.router.Route("/api/v1", func(r chi.Router) {
+		s.initUser(r)
+	})
+}
+
+func (s *Server) initUser(r chi.Router) {
+	userService := user.NewUserServiceImpl(s.store)
+	userCtrl, err := user.NewUserController(userService, s.validator)
+	if err != nil {
+		log.Fatalf("Error initializing user controller: %v", err)
+	}
+	user.RegisterRoutes(r, userCtrl)
 }
 
 func (s *Server) Start() {
@@ -103,5 +130,5 @@ func (s *Server) Start() {
 }
 
 func (s *Server) closeResources() {
-	_ = s.sqlx.Close()
+	_ = s.db.Close()
 }

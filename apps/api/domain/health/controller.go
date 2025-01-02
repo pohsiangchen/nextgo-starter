@@ -1,4 +1,4 @@
-package handler
+package health
 
 import (
 	"net/http"
@@ -14,7 +14,7 @@ func (h HealthResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (s *Server) health(w http.ResponseWriter, r *http.Request) {
+func Get(w http.ResponseWriter, r *http.Request) {
 	health := HealthResponse{Status: "ok"}
 	render.Render(w, r, health)
 }
