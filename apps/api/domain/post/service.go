@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"math"
 
 	"apps/api/database/sqlc"
 	"apps/api/util/auth"
@@ -15,7 +14,7 @@ type PostService interface {
 	Update(ctx context.Context, post *UpdatePostRequest) (sqlcstore.Post, error)
 	Delete(ctx context.Context, postID int64) error
 	FindById(ctx context.Context, postID int64) (sqlcstore.Post, error)
-	ListFeeds(ctx context.Context) ([]sqlcstore.ListFeedsByUserIdRow, error)
+	ListFeeds(ctx context.Context, filters *Filter) ([]sqlcstore.ListFeedsByUserIdRow, error)
 }
 
 type PostServiceImpl struct {
@@ -67,15 +66,15 @@ func (ps PostServiceImpl) FindById(ctx context.Context, postID int64) (sqlcstore
 	return post, err
 }
 
-func (ps PostServiceImpl) ListFeeds(ctx context.Context) ([]sqlcstore.ListFeedsByUserIdRow, error) {
+func (ps PostServiceImpl) ListFeeds(ctx context.Context, filters *Filter) ([]sqlcstore.ListFeedsByUserIdRow, error) {
 	user, ok := ps.authenticator.UserFromCtx(ctx)
 	if !ok {
 		return []sqlcstore.ListFeedsByUserIdRow{}, errors.New("cannot find current signed-in user from context")
 	}
 	rows, err := ps.store.ListFeedsByUserId(ctx, sqlcstore.ListFeedsByUserIdParams{
 		FollowingUserID: user.ID,
-		LastPostsID:     math.MaxInt64,
-		Limit:           100,
+		LastPostsID:     filters.LastPostID,
+		Limit:           int32(filters.Limit),
 	})
 	return rows, err
 }

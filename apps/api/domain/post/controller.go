@@ -86,11 +86,13 @@ func (postCtrl *PostController) Get(w http.ResponseWriter, r *http.Request) {
 
 func (postCtrl *PostController) ListFeeds(w http.ResponseWriter, r *http.Request) {
 	zlog := zerolog.Ctx(r.Context())
-	feeds, err := postCtrl.postService.ListFeeds(r.Context())
+	filters := NewFilter().Parse(r.URL.Query())
+
+	feeds, err := postCtrl.postService.ListFeeds(r.Context(), filters)
 	if err != nil {
 		zlog.Error().Err(err).Msg("failed to retrieve feeds")
 		render.Render(w, r, response.ErrInternalServerError)
 		return
 	}
-	render.RenderList(w, r, NewFeedListResponse(feeds))
+	render.Render(w, r, NewFeedListResponse(feeds, filters))
 }
