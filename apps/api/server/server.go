@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	// "expvar"
 	"log"
 	"net/http"
 	"os"
@@ -18,17 +19,21 @@ import (
 
 	"apps/api/config"
 	"apps/api/database"
-	sqlcStore "apps/api/database/sqlc"
+	"apps/api/database/sqlc"
+	"apps/api/domain/auth"
 	"apps/api/domain/health"
+	"apps/api/domain/post"
 	"apps/api/domain/user"
 	"apps/api/middleware"
+	utilAuth "apps/api/util/auth"
 )
 
 type Server struct {
-	cfg       *config.Config
-	db        *sql.DB
-	store     *sqlcStore.Queries
-	validator *validator.Validate
+	cfg           *config.Config
+	db            *sql.DB
+	store         *sqlcstore.Queries
+	validator     *validator.Validate
+	authenticator utilAuth.Authenticator
 
 	router *chi.Mux
 }
@@ -42,6 +47,7 @@ func NewServer() *Server {
 	// initialization
 	srv.newDatabase()
 	srv.newValidator()
+	srv.initAuthenticator()
 	srv.initRoutes()
 
 	return srv
@@ -58,7 +64,7 @@ func (s *Server) newDatabase() {
 	s.db.SetMaxIdleConns(s.cfg.Database.MaxIdleConnections)
 	s.db.SetConnMaxLifetime(s.cfg.Database.ConnectionsMaxLifeTime)
 
-	s.store = sqlcStore.New(s.db)
+	s.store = sqlcstore.New(s.db)
 }
 
 func (s *Server) newValidator() {
@@ -73,12 +79,25 @@ func (s *Server) initRoutes() {
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
+	// operations
 	s.router.Get("/livez", health.Get)
+	// s.router.Get("/debug/vars", expvar.Handler().ServeHTTP)
 
-	// initialize user routes
+	// initialize routes
 	s.router.Route("/api/v1", func(r chi.Router) {
+		s.initAuthentication(r)
 		s.initUser(r)
+		s.initPost(r)
 	})
+}
+
+func (s *Server) initAuthentication(r chi.Router) {
+	authService := auth.NewAuthServiceImpl(s.store, s.authenticator)
+	authCtrl, err := auth.NewAuthController(authService, s.validator)
+	if err != nil {
+		log.Fatalf("Error initializing authentication controller: %v", err)
+	}
+	auth.RegisterRoutes(r, authCtrl)
 }
 
 func (s *Server) initUser(r chi.Router) {
@@ -87,7 +106,27 @@ func (s *Server) initUser(r chi.Router) {
 	if err != nil {
 		log.Fatalf("Error initializing user controller: %v", err)
 	}
-	user.RegisterRoutes(r, userCtrl)
+	jwtMiddleware := middleware.JWT(s.store, s.authenticator)
+	user.RegisterRoutes(r, userCtrl, jwtMiddleware)
+}
+
+func (s *Server) initPost(r chi.Router) {
+	postService := post.NewPostServiceImpl(s.store, s.authenticator)
+	postCtrl, err := post.NewPostController(postService, s.validator)
+	if err != nil {
+		log.Fatalf("Error initializing post controller: %v", err)
+	}
+	jwtMiddleware := middleware.JWT(s.store, s.authenticator)
+	post.RegisterRoutes(r, postCtrl, jwtMiddleware)
+}
+
+func (s *Server) initAuthenticator() {
+	s.authenticator = utilAuth.NewJWTAuthenticator(
+		s.cfg.API.AuthJwtSecret,
+		s.cfg.API.AuthJwtIss,
+		s.cfg.API.AuthJwtIss,
+		s.cfg.API.AuthJwtExp,
+	)
 }
 
 func (s *Server) Start() {

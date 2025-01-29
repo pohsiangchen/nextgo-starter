@@ -1,13 +1,17 @@
 package user
 
 import (
-	"apps/api/middleware"
+	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"apps/api/middleware"
 )
 
-func RegisterRoutes(r chi.Router, userCtrl *UserController) {
+func RegisterRoutes(r chi.Router, userCtrl *UserController, jwtMiddleware func(next http.Handler) http.Handler) {
 	r.Route("/users", func(r chi.Router) {
+		r.Use(jwtMiddleware)
+
 		r.Get("/", userCtrl.List)
 
 		r.Route("/", func(r chi.Router) {

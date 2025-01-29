@@ -8,7 +8,7 @@
     "build": {
       "executor": "@nx-go/nx-go:build",
       "options": {
-        "main": "{projectRoot}/main.go"
+        "main": "{projectRoot}/cmd/api/main.go"
       }
     },
     "dev": {
@@ -21,7 +21,7 @@
     "serve": {
       "executor": "@nx-go/nx-go:serve",
       "options": {
-        "main": "{projectRoot}/main.go"
+        "main": "{projectRoot}/cmd/api/main.go"
       }
     },
     "test": {
@@ -32,6 +32,12 @@
     },
     "tidy": {
       "executor": "@nx-go/nx-go:tidy"
+    },
+    "seed": {
+      "executor": "@nx-go/nx-go:serve",
+      "options": {
+        "main": "{projectRoot}/cmd/seed/main.go"
+      }
     },
     "migrate-create": {
       "executor": "nx:run-commands",

@@ -83,3 +83,10 @@ func ErrConflict(err error) render.Renderer {
 		ErrorText:      []string{err.Error()},
 	}
 }
+
+func ErrUnauthorized() render.Renderer {
+	return &ErrResponse{
+		HTTPStatusCode: http.StatusUnauthorized,
+		StatusText:     "Unauthorized",
+	}
+}
