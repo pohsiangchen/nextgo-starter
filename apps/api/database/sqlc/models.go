@@ -8,6 +8,30 @@ import (
 	"database/sql"
 )
 
+type Comment struct {
+	ID        int64
+	Content   sql.NullString
+	UserID    int64
+	PostID    int64
+	UpdatedAt sql.NullTime
+	CreatedAt sql.NullTime
+}
+
+type Follow struct {
+	FollowingUserID int64
+	FollowedUserID  int64
+	CreatedAt       sql.NullTime
+}
+
+type Post struct {
+	ID        int64
+	Title     sql.NullString
+	Content   sql.NullString
+	UserID    int64
+	UpdatedAt sql.NullTime
+	CreatedAt sql.NullTime
+}
+
 type User struct {
 	ID        int64
 	Email     string

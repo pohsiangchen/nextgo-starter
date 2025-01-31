@@ -10,7 +10,7 @@ import (
 
 // Recovery adapted from https://github.com/go-chi/chi/blob/master/middleware/recoverer.go
 func Recovery(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
 				if rvr == http.ErrAbortHandler {
@@ -42,7 +42,5 @@ func Recovery(next http.Handler) http.Handler {
 		}()
 
 		next.ServeHTTP(w, r)
-	}
-
-	return http.HandlerFunc(fn)
+	})
 }

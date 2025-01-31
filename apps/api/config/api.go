@@ -16,6 +16,9 @@ type API struct {
 	GracefulTimeout time.Duration `split_words:"true" default:"10s"`
 	AppEnv          string        `split_words:"true" default:"development"`
 	LogLevel        int           `split_words:"true" default:"1"`
+	AuthJwtSecret   string        `required:"true" split_words:"true"`
+	AuthJwtIss      string        `required:"true" split_words:"true"`
+	AuthJwtExp      time.Duration `split_words:"true" default:"72h"`
 }
 
 func NewAPI() API {

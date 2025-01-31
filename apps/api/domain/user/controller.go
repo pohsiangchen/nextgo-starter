@@ -1,14 +1,15 @@
 package user
 
 import (
+	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog"
 
-	"apps/api/database"
 	"apps/api/middleware"
 	"apps/api/util/response"
 )
@@ -36,13 +37,12 @@ func (userCtrl *UserController) Create(w http.ResponseWriter, r *http.Request) {
 
 	user, err := userCtrl.userService.Create(r.Context(), data)
 	if err != nil {
-		switch err {
-		case database.ErrDuplicateEmail:
+		if err != nil && strings.Contains(err.Error(), `duplicate key value violates unique constraint "users_email_key"`) {
 			render.Render(w, r, response.ErrDuplicateEmail(data.Email))
-		default:
-			zlog.Error().Err(err).Msg("failed to create a user record")
-			render.Render(w, r, response.ErrInternalServerError)
+			return
 		}
+		zlog.Error().Err(err).Msg("failed to create a user record")
+		render.Render(w, r, response.ErrInternalServerError)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (userCtrl *UserController) Create(w http.ResponseWriter, r *http.Request) {
 
 func (userCtrl *UserController) Update(w http.ResponseWriter, r *http.Request) {
 	zlog := zerolog.Ctx(r.Context())
-	userID := UserID(r.Context())
+	userID := UserIDFromCtx(r.Context())
 
 	data, ok := (middleware.Object(r.Context())).(*UpdateUserRequest)
 	if !ok {
@@ -63,7 +63,7 @@ func (userCtrl *UserController) Update(w http.ResponseWriter, r *http.Request) {
 
 	user, err := userCtrl.userService.Update(r.Context(), data)
 	if err != nil {
-		if err == database.ErrRecordNotFound {
+		if err == sql.ErrNoRows {
 			render.Render(w, r, response.ErrNotFound)
 			return
 		}
@@ -77,9 +77,9 @@ func (userCtrl *UserController) Update(w http.ResponseWriter, r *http.Request) {
 
 func (userCtrl *UserController) Delete(w http.ResponseWriter, r *http.Request) {
 	zlog := zerolog.Ctx(r.Context())
-	userID := UserID(r.Context())
+	userID := UserIDFromCtx(r.Context())
 	if err := userCtrl.userService.Delete(r.Context(), userID); err != nil {
-		if err == database.ErrRecordNotFound {
+		if err == sql.ErrNoRows {
 			render.Render(w, r, response.ErrNotFound)
 			return
 		}
@@ -104,10 +104,10 @@ func (userCtrl *UserController) List(w http.ResponseWriter, r *http.Request) {
 
 func (userCtrl *UserController) Get(w http.ResponseWriter, r *http.Request) {
 	zlog := zerolog.Ctx(r.Context())
-	userID := UserID(r.Context())
+	userID := UserIDFromCtx(r.Context())
 	user, err := userCtrl.userService.FindById(r.Context(), userID)
 	if err != nil {
-		if err == database.ErrRecordNotFound {
+		if err == sql.ErrNoRows {
 			render.Render(w, r, response.ErrNotFound)
 			return
 		}

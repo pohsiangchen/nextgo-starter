@@ -3,12 +3,9 @@ package user
 import (
 	"context"
 	"database/sql"
-	"strings"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"apps/api/database"
 	"apps/api/database/sqlc"
+	"apps/api/util/auth"
 )
 
 type UserService interface {
@@ -31,7 +28,7 @@ func NewUserServiceImpl(store *sqlcstore.Queries) (service UserService) {
 }
 
 func (us UserServiceImpl) Create(ctx context.Context, user *CreateUserRequest) (sqlcstore.User, error) {
-	hash, err := HashPassword(user.Password)
+	hash, err := auth.HashPassword(user.Password)
 	if err != nil {
 		return sqlcstore.User{}, err
 	}
@@ -40,9 +37,6 @@ func (us UserServiceImpl) Create(ctx context.Context, user *CreateUserRequest) (
 		ctx,
 		sqlcstore.CreateUserParams{Email: user.Email, Username: user.Username, Password: hash},
 	)
-	if err != nil && strings.Contains(err.Error(), `duplicate key value violates unique constraint "users_email_key"`) {
-		return createdUser, database.ErrDuplicateEmail
-	}
 	return createdUser, err
 }
 
@@ -64,7 +58,7 @@ func (us UserServiceImpl) UpdatePassword(ctx context.Context, user *UpdateUserPa
 		return foundUser, err
 	}
 
-	hash, err := HashPassword(user.Password)
+	hash, err := auth.HashPassword(user.Password)
 	if err != nil {
 		return sqlcstore.User{}, err
 	}
@@ -84,23 +78,10 @@ func (us UserServiceImpl) Delete(ctx context.Context, userID int64) error {
 
 func (us UserServiceImpl) FindById(ctx context.Context, userID int64) (sqlcstore.User, error) {
 	user, err := us.store.GetUser(ctx, userID)
-	if err != nil && err == sql.ErrNoRows {
-		return user, database.ErrRecordNotFound
-	}
 	return user, err
 }
 
 func (us UserServiceImpl) FindAll(ctx context.Context) ([]sqlcstore.User, error) {
 	users, err := us.store.ListUsers(ctx)
 	return users, err
-}
-
-// Hash password
-func HashPassword(password string) ([]byte, error) {
-	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-}
-
-// Compares a bcrypt hashed password with the given password
-func ComparePassword(hashedPassword []byte, password string) error {
-	return bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
 }
