@@ -73,10 +73,11 @@ func PostFromCtx(ctx context.Context) sqlcstore.Post {
 // Checks if post can be accessed by requesting user
 func CheckPostOwnership(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
+		zlog := zerolog.Ctx(r.Context())
 		ctx := r.Context()
 		user, ok := middleware.UserFromCtx(ctx)
 		if !ok {
+			zlog.Warn().Msg("Cannot find user object from context. Make sure the route has been attached 'middleware.JWT' before 'CheckPostOwnership' middleware")
 			render.Render(w, r, response.ErrUnauthorized)
 			return
 		}

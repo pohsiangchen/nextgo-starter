@@ -7,7 +7,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog"
 
+	"apps/api/middleware"
 	"apps/api/util/response"
 )
 
@@ -28,7 +30,7 @@ var (
 )
 
 // Convert `userID` of URL parameter to `int64` and store it in the context.Context
-func SetUserID(next http.Handler) http.Handler {
+func SetUserIDToCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		idParam := chi.URLParam(r, "userID")
 		userID, err := strconv.ParseInt(idParam, 10, 64)
@@ -43,6 +45,28 @@ func SetUserID(next http.Handler) http.Handler {
 }
 
 // Get converted `userID` of URL parameter from the context.Context
-func UserID(ctx context.Context) int64 {
+func UserIDFromCtx(ctx context.Context) int64 {
 	return ctx.Value(UserIDCtxKey).(int64)
+}
+
+// Checks if user's resources can be accessed by requesting user
+func CheckUserOwnership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		zlog := zerolog.Ctx(r.Context())
+		ctx := r.Context()
+		user, ok := middleware.UserFromCtx(ctx)
+		if !ok {
+			zlog.Warn().Msg("Cannot find user object from context. Make sure the route has been attached 'middleware.JWT' before 'CheckUserOwnership' middleware")
+			render.Render(w, r, response.ErrUnauthorized)
+			return
+		}
+		userID := UserIDFromCtx(ctx)
+
+		if userID != user.ID {
+			render.Render(w, r, response.ErrForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

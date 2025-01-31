@@ -12,23 +12,26 @@ func RegisterRoutes(r chi.Router, userCtrl *UserController, jwtMiddleware func(n
 	r.Route("/users", func(r chi.Router) {
 		r.Use(jwtMiddleware)
 
-		r.Get("/", userCtrl.List)
+		// TODO: add user role feature to allow admin role only
+		// r.Get("/", userCtrl.List)
 
-		r.Route("/", func(r chi.Router) {
-			r.Use(middleware.BindObject(&CreateUserRequest{}, userCtrl.validator))
-			r.Post("/", userCtrl.Create)
-		})
+		// TODO: add user role feature to allow admin role only
+		// r.Route("/", func(r chi.Router) {
+		// 	r.Use(middleware.BindObject(&CreateUserRequest{}, userCtrl.validator))
+		// 	r.Post("/", userCtrl.Create)
+		// })
 
 		r.Route("/{userID}", func(r chi.Router) {
-			r.Use(SetUserID)
-			r.Get("/", userCtrl.Get)
+			r.Use(SetUserIDToCtx)
+			r.With(CheckUserOwnership).Get("/", userCtrl.Get)
 
 			r.Route("/", func(r chi.Router) {
 				r.Use(middleware.BindObject(&UpdateUserRequest{}, userCtrl.validator))
-				r.Put("/", userCtrl.Update)
+				r.With(CheckUserOwnership).Put("/", userCtrl.Update)
 			})
 
-			r.Delete("/", userCtrl.Delete)
+			// TODO: add user role feature to allow admin role only
+			// r.Delete("/", userCtrl.Delete)
 		})
 
 	})

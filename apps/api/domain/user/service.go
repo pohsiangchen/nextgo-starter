@@ -3,9 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
-	"strings"
 
-	"apps/api/database"
 	"apps/api/database/sqlc"
 	"apps/api/util/auth"
 )
@@ -39,9 +37,6 @@ func (us UserServiceImpl) Create(ctx context.Context, user *CreateUserRequest) (
 		ctx,
 		sqlcstore.CreateUserParams{Email: user.Email, Username: user.Username, Password: hash},
 	)
-	if err != nil && strings.Contains(err.Error(), `duplicate key value violates unique constraint "users_email_key"`) {
-		return createdUser, database.ErrDuplicateEmail
-	}
 	return createdUser, err
 }
 
@@ -83,9 +78,6 @@ func (us UserServiceImpl) Delete(ctx context.Context, userID int64) error {
 
 func (us UserServiceImpl) FindById(ctx context.Context, userID int64) (sqlcstore.User, error) {
 	user, err := us.store.GetUser(ctx, userID)
-	if err != nil && err == sql.ErrNoRows {
-		return user, database.ErrRecordNotFound
-	}
 	return user, err
 }
 
