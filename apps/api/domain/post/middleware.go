@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 
 	sqlcstore "apps/api/database/sqlc"
+	"apps/api/middleware"
 	"apps/api/util/response"
 )
 
@@ -67,4 +68,25 @@ func SetPostToCtx(postService PostService) func(next http.Handler) http.Handler 
 // Get converted `postID` of URL parameter from the context.Context
 func PostFromCtx(ctx context.Context) sqlcstore.Post {
 	return ctx.Value(PostCtxKey).(sqlcstore.Post)
+}
+
+// Checks if post can be accessed by requesting user
+func CheckPostOwnership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		ctx := r.Context()
+		user, ok := middleware.UserFromCtx(ctx)
+		if !ok {
+			render.Render(w, r, response.ErrUnauthorized)
+			return
+		}
+		post := PostFromCtx(ctx)
+
+		if post.UserID != user.ID {
+			render.Render(w, r, response.ErrForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }

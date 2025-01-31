@@ -87,6 +87,10 @@ func (postCtrl *PostController) Get(w http.ResponseWriter, r *http.Request) {
 func (postCtrl *PostController) ListFeeds(w http.ResponseWriter, r *http.Request) {
 	zlog := zerolog.Ctx(r.Context())
 	filters := NewFilter().Parse(r.URL.Query())
+	if err := postCtrl.validator.Struct(filters); err != nil {
+		render.Render(w, r, response.ErrValidationFailed(err))
+		return
+	}
 
 	feeds, err := postCtrl.postService.ListFeeds(r.Context(), filters)
 	if err != nil {
@@ -94,5 +98,6 @@ func (postCtrl *PostController) ListFeeds(w http.ResponseWriter, r *http.Request
 		render.Render(w, r, response.ErrInternalServerError)
 		return
 	}
+
 	render.Render(w, r, NewFeedListResponse(feeds, filters))
 }

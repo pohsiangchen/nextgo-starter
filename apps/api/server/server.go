@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
+
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
@@ -76,6 +77,8 @@ func (s *Server) initRoutes() {
 	s.router.Use(middleware.Logger)
 	s.router.Use(middleware.RequestID("req_id", "X-Request-Id"))
 	s.router.Use(middleware.Recovery)
+	// TODO: verify if it works
+	s.router.Use(chiMiddleware.Compress(5, "application/json"))
 
 	s.router.Use(render.SetContentType(render.ContentTypeJSON))
 
@@ -111,7 +114,7 @@ func (s *Server) initUser(r chi.Router) {
 }
 
 func (s *Server) initPost(r chi.Router) {
-	postService := post.NewPostServiceImpl(s.store, s.authenticator)
+	postService := post.NewPostServiceImpl(s.store)
 	postCtrl, err := post.NewPostController(postService, s.validator)
 	if err != nil {
 		log.Fatalf("Error initializing post controller: %v", err)

@@ -15,16 +15,16 @@ type PostResponse struct {
 	ID      int64  `json:"id"`
 	Title   string `json:"title,omitempty"`
 	Content string `json:"content,omitempty"`
-	User    User   `json:"user,omitempty"`
+	User    *User  `json:"user,omitempty"`
 }
 
 type Feed struct {
-	Post          PostResponse `json:"post"`
-	CommentsCount int          `json:"comments_count"`
+	Post          *PostResponse `json:"post"`
+	CommentsCount int           `json:"comments_count"`
 }
 
 type FeedResponse struct {
-	Data     []Feed  `json:"data"`
+	Data     []*Feed `json:"data"`
 	Metadata *Filter `json:"metadata"`
 }
 
@@ -45,14 +45,14 @@ func NewPostResponse(p sqlcstore.Post) *PostResponse {
 }
 
 func NewFeedListResponse(feeds []sqlcstore.ListFeedsByUserIdRow, filters *Filter) *FeedResponse {
-	data := []Feed{}
+	data := []*Feed{}
 	for _, feed := range feeds {
-		data = append(data, Feed{
-			Post: PostResponse{
+		data = append(data, &Feed{
+			Post: &PostResponse{
 				ID:      feed.Post.ID,
 				Title:   feed.Post.Title.String,
 				Content: feed.Post.Content.String,
-				User: User{
+				User: &User{
 					ID:       feed.Post.UserID,
 					Username: feed.Username.String,
 				},

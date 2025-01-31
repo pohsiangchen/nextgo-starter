@@ -39,7 +39,7 @@ func (authCtrl *AuthController) CreateToken(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows, bcrypt.ErrMismatchedHashAndPassword:
-			render.Render(w, r, response.ErrUnauthorized())
+			render.Render(w, r, response.ErrUnauthorized)
 		default:
 			zlog.Error().Err(err).Msg("failed to create authentication token")
 			render.Render(w, r, response.ErrInternalServerError)

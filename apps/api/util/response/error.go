@@ -24,6 +24,8 @@ func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
 
 var (
 	ErrBadRequest          = &ErrResponse{HTTPStatusCode: http.StatusBadRequest, StatusText: "Bad request"}
+	ErrUnauthorized        = &ErrResponse{HTTPStatusCode: http.StatusUnauthorized, StatusText: "Unauthorized"}
+	ErrForbidden           = &ErrResponse{HTTPStatusCode: http.StatusForbidden, StatusText: "Not Authorized to access this resource"}
 	ErrNotFound            = &ErrResponse{HTTPStatusCode: http.StatusNotFound, StatusText: "Resource not found"}
 	ErrUnprocessableEntity = &ErrResponse{HTTPStatusCode: http.StatusUnprocessableEntity, StatusText: "Validation failed"}
 	ErrInternalServerError = &ErrResponse{HTTPStatusCode: http.StatusInternalServerError, StatusText: "Internal server error"}
@@ -81,12 +83,5 @@ func ErrConflict(err error) render.Renderer {
 		HTTPStatusCode: http.StatusConflict,
 		StatusText:     "Duplicate Key",
 		ErrorText:      []string{err.Error()},
-	}
-}
-
-func ErrUnauthorized() render.Renderer {
-	return &ErrResponse{
-		HTTPStatusCode: http.StatusUnauthorized,
-		StatusText:     "Unauthorized",
 	}
 }

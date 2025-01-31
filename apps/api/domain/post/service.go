@@ -6,7 +6,7 @@ import (
 	"errors"
 
 	"apps/api/database/sqlc"
-	"apps/api/util/auth"
+	"apps/api/middleware"
 )
 
 type PostService interface {
@@ -18,19 +18,17 @@ type PostService interface {
 }
 
 type PostServiceImpl struct {
-	store         *sqlcstore.Queries
-	authenticator auth.Authenticator
+	store *sqlcstore.Queries
 }
 
-func NewPostServiceImpl(store *sqlcstore.Queries, authenticator auth.Authenticator) (service PostService) {
+func NewPostServiceImpl(store *sqlcstore.Queries) (service PostService) {
 	return &PostServiceImpl{
-		store:         store,
-		authenticator: authenticator,
+		store: store,
 	}
 }
 
 func (ps PostServiceImpl) Create(ctx context.Context, post *CreatePostRequest) (sqlcstore.Post, error) {
-	user, ok := ps.authenticator.UserFromCtx(ctx)
+	user, ok := middleware.UserFromCtx(ctx)
 	if !ok {
 		return sqlcstore.Post{}, errors.New("cannot find current signed-in user from context")
 	}
@@ -67,7 +65,7 @@ func (ps PostServiceImpl) FindById(ctx context.Context, postID int64) (sqlcstore
 }
 
 func (ps PostServiceImpl) ListFeeds(ctx context.Context, filters *Filter) ([]sqlcstore.ListFeedsByUserIdRow, error) {
-	user, ok := ps.authenticator.UserFromCtx(ctx)
+	user, ok := middleware.UserFromCtx(ctx)
 	if !ok {
 		return []sqlcstore.ListFeedsByUserIdRow{}, errors.New("cannot find current signed-in user from context")
 	}

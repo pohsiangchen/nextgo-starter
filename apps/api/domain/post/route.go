@@ -23,10 +23,10 @@ func RegisterRoutes(r chi.Router, postCtrl *PostController, jwtMiddleware func(n
 
 			r.Route("/", func(r chi.Router) {
 				r.Use(middleware.BindObject(&UpdatePostRequest{}, postCtrl.validator))
-				r.Patch("/", postCtrl.Update)
+				r.With(CheckPostOwnership).Patch("/", postCtrl.Update)
 			})
 
-			r.Delete("/", postCtrl.Delete)
+			r.With(CheckPostOwnership).Delete("/", postCtrl.Delete)
 		})
 	})
 
